@@ -197,7 +197,7 @@ void wDisplay::Display(wImage& Img)
 }
 
 void wDisplay::DrawRect(RECT Rect, COLORREF Color, int Num)
-{/*
+{
 	CPen Pen;
 	CPen *pOldPen;
 
@@ -258,7 +258,7 @@ void wDisplay::DrawRect(RECT Rect, COLORREF Color, int Num)
 				break;
 			}
 		}
-	}*/
+	}
 }
 
 void wDisplay::OnPaint() 

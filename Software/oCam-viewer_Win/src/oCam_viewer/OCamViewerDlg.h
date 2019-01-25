@@ -19,10 +19,14 @@ public:
     void		UpdateFPS();
     void		CopyImage(void *Data);
 
+	char*		m_dirImgSeq = "img_seq\\";
+	bool		isRecording = false;
+
 // Dialog Data
 	enum { IDD = IDD_OCAMVIEWER_DIALOG };
 
 	CDlgCamCtrl	m_DlgCamCtrl;
+
 
     CAMPTR		m_pCam;
 	CString		m_CamModel;
@@ -68,6 +72,10 @@ public:
 	afx_msg void OnCbnSelchangeComboCam();
 	afx_msg void OnCbnSelchangeComboResolution();
 	afx_msg void OnBnClickedButtonSaveImage();
+
+	afx_msg void OnBnClickedButtonSaveVideo();	//ENABLE SAVE VIDEO
+	void SaveSequenceInstance();						// SAVE VIDEO
+
 	afx_msg void OnDestroy();
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	afx_msg LRESULT CallbackProc(WPARAM wParam, LPARAM lParam);

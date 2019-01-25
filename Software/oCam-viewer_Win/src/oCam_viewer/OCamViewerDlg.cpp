@@ -10,6 +10,10 @@
 #include <string>
 #include  <fstream>
 
+#include <sstream>
+#include <iostream>
+#include <iomanip>
+
 #define  WM_CALLBACK		(WM_USER+2)
 
 #ifdef _DEBUG
@@ -231,6 +235,13 @@ COCamViewerDlg::COCamViewerDlg(CWnd* pParent /*=NULL*/)
 	m_Count		= 0;
 
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+
+	// Set up dir for sequence of images
+	m_dirImgSeq = "img_seq\\";
+	char* cmd = (char *)malloc(32);
+	strcpy(cmd, "mkdir ");
+	strcat(cmd, m_dirImgSeq);
+	system(cmd);
 }
 
 void COCamViewerDlg::DoDataExchange(CDataExchange* pDX)
@@ -248,6 +259,9 @@ BEGIN_MESSAGE_MAP(COCamViewerDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_BUTTON_PLAY, &COCamViewerDlg::OnBnClickedButtonPlay)
 	ON_BN_CLICKED(IDC_BUTTON_STOP, &COCamViewerDlg::OnBnClickedButtonStop)
+
+	ON_BN_CLICKED(IDC_BUTTON_SAVE_VIDEO, &COCamViewerDlg::OnBnClickedButtonSaveVideo)
+	
 	ON_CBN_SELCHANGE(IDC_COMBO_CAM, &COCamViewerDlg::OnCbnSelchangeComboCam)
 	ON_CBN_SELCHANGE(IDC_COMBO_RESOLUTION, &COCamViewerDlg::OnCbnSelchangeComboResolution)
 	ON_BN_CLICKED(IDC_BUTTON_SAVE_IMAGE, &COCamViewerDlg::OnBnClickedButtonSaveImage)
@@ -327,6 +341,7 @@ BOOL COCamViewerDlg::OnInitDialog()
 	GetDlgItem(IDC_BUTTON_STOP)->EnableWindow(FALSE);
 	GetDlgItem(IDC_BUTTON_CAM_CTRL)->EnableWindow(FALSE);
 	GetDlgItem(IDC_BUTTON_SAVE_IMAGE)->EnableWindow(FALSE);
+	GetDlgItem(IDC_BUTTON_TEST)->EnableWindow(TRUE);
 	
 	m_StartTime = timeGetTime();
 
@@ -451,6 +466,7 @@ LRESULT COCamViewerDlg::CallbackProc(WPARAM wParam, LPARAM lParam)
 	if (m_CamModel == "oCam-1CGN-U") {
 		Bayer2RGB((char*)src, (char*)dst, m_Width, m_Height, BayerGR2RGB);
 		m_Display.Display(m_Image);
+		
 	}
 	else if (m_CamModel == "oCam-1MGN-U") {
 		m_Display.Display(m_ImageSrc);
@@ -459,6 +475,7 @@ LRESULT COCamViewerDlg::CallbackProc(WPARAM wParam, LPARAM lParam)
 		YUV2RGB(src, dst, m_Image.GetNumPixels(), 0, 1, 2, 3);
 		m_Display.Display(m_Image);
 	}
+	SaveSequenceInstance();
 	return 0;
 }
 
@@ -470,7 +487,29 @@ void COCamViewerDlg::OnBnClickedButtonPlay()
 #endif
 
     // TODO: Add your control notification handler code here
-    m_pCam = CamOpen(m_CamSel, m_Width, m_Height, m_FPS, CallbackFunction, this);
+	if(GetConnectedCamNumber() > 0)
+	{
+		m_pCam = CamOpen(m_CamSel, m_Width, m_Height, m_FPS, CallbackFunction, this);
+	} else
+	{
+		m_Image.Alloc(600,600, MV_Y8);
+		RECT rct = RECT{ 150, 150, 250,250 };
+		COLORREF clr = 0x778877;
+		m_Display.Display(m_Image);
+		m_Display.DrawRect(rct, clr);
+		HWND wrnWnd = NULL;
+		LPCSTR txt = "No camera connected";
+		LPCSTR cpt = "Camera issue";
+		MessageBoxA(txt, cpt, MB_OK);
+
+		GetDlgItem(IDC_BUTTON_PLAY)->EnableWindow(FALSE);
+		GetDlgItem(IDC_BUTTON_STOP)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_CAM_CTRL)->EnableWindow(TRUE);
+		GetDlgItem(IDC_COMBO_RESOLUTION)->EnableWindow(FALSE);
+		GetDlgItem(IDC_COMBO_CAM)->EnableWindow(FALSE);
+		GetDlgItem(IDC_BUTTON_TEST)->EnableWindow(TRUE);
+		return;
+	}
 	m_DlgCamCtrl.UpdateCamCtrl(m_pCam, m_Width, m_Height);
 
 	if (m_CamModel == "oCam-1MGN-U" || m_CamModel == "oCam-1CGN-U")
@@ -518,6 +557,32 @@ void COCamViewerDlg::OnBnClickedButtonStop()
 
 	m_DlgCamCtrl.ShowWindow(SW_HIDE);
 	m_CurrFPS = 0;
+}
+
+void COCamViewerDlg::OnBnClickedButtonSaveVideo()
+{
+	GetDlgItem(IDC_BUTTON_PLAY)->EnableWindow(TRUE);
+	GetDlgItem(IDC_BUTTON_STOP)->EnableWindow(TRUE);
+	GetDlgItem(IDC_BUTTON_CAM_CTRL)->EnableWindow(TRUE);
+	GetDlgItem(IDC_COMBO_RESOLUTION)->EnableWindow(TRUE);
+	GetDlgItem(IDC_COMBO_CAM)->EnableWindow(TRUE);
+
+	GetDlgItem(IDC_BUTTON_SAVE_IMAGE)->EnableWindow(TRUE);
+	
+	isRecording = true;
+	SaveSequenceInstance();
+}
+
+void COCamViewerDlg::SaveSequenceInstance()
+{
+	DWORD time = timeGetTime();
+
+	std::ostringstream save_name, time_s;
+	std::string dir(m_dirImgSeq);
+	save_name << dir << "im_" << std::setw(10) << std::setfill('0') << time << ".bmp";
+	std::string name_str = save_name.str();
+	CString fName(name_str.c_str());
+	m_Image.Save(fName);
 }
 
 void COCamViewerDlg::OnCbnSelchangeComboCam()
