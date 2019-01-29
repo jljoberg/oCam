@@ -261,6 +261,7 @@ BEGIN_MESSAGE_MAP(COCamViewerDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_STOP, &COCamViewerDlg::OnBnClickedButtonStop)
 
 	ON_BN_CLICKED(IDC_BUTTON_SAVE_VIDEO, &COCamViewerDlg::OnBnClickedButtonSaveVideo)
+	ON_BN_CLICKED(IDC_BUTTON_STOP_VIDEO, &COCamViewerDlg::OnBnClickedButtonStopVideo)
 	
 	ON_CBN_SELCHANGE(IDC_COMBO_CAM, &COCamViewerDlg::OnCbnSelchangeComboCam)
 	ON_CBN_SELCHANGE(IDC_COMBO_RESOLUTION, &COCamViewerDlg::OnCbnSelchangeComboResolution)
@@ -341,8 +342,10 @@ BOOL COCamViewerDlg::OnInitDialog()
 	GetDlgItem(IDC_BUTTON_STOP)->EnableWindow(FALSE);
 	GetDlgItem(IDC_BUTTON_CAM_CTRL)->EnableWindow(FALSE);
 	GetDlgItem(IDC_BUTTON_SAVE_IMAGE)->EnableWindow(FALSE);
-	GetDlgItem(IDC_BUTTON_TEST)->EnableWindow(TRUE);
-	
+
+	GetDlgItem(IDC_BUTTON_SAVE_VIDEO)->EnableWindow(TRUE);
+	GetDlgItem(IDC_BUTTON_STOP_VIDEO)->EnableWindow(FALSE);
+
 	m_StartTime = timeGetTime();
 
 	SetTimer(1, 1000, NULL);
@@ -475,7 +478,11 @@ LRESULT COCamViewerDlg::CallbackProc(WPARAM wParam, LPARAM lParam)
 		YUV2RGB(src, dst, m_Image.GetNumPixels(), 0, 1, 2, 3);
 		m_Display.Display(m_Image);
 	}
-	SaveSequenceInstance();
+
+	if (isRecording)
+	{
+		SaveSequenceInstance();
+	}
 	return 0;
 }
 
@@ -489,7 +496,8 @@ void COCamViewerDlg::OnBnClickedButtonPlay()
     // TODO: Add your control notification handler code here
 	if(GetConnectedCamNumber() > 0)
 	{
-		m_pCam = CamOpen(m_CamSel, m_Width, m_Height, m_FPS, CallbackFunction, this);
+		//m_pCam = CamOpen(m_CamSel, m_Width, m_Height, m_FPS, CallbackFunction, this);
+		m_pCam = CamOpen(m_CamSel, m_Width, m_Height, 5, CallbackFunction, this);
 	} else
 	{
 		m_Image.Alloc(600,600, MV_Y8);
@@ -561,28 +569,44 @@ void COCamViewerDlg::OnBnClickedButtonStop()
 
 void COCamViewerDlg::OnBnClickedButtonSaveVideo()
 {
-	GetDlgItem(IDC_BUTTON_PLAY)->EnableWindow(TRUE);
-	GetDlgItem(IDC_BUTTON_STOP)->EnableWindow(TRUE);
-	GetDlgItem(IDC_BUTTON_CAM_CTRL)->EnableWindow(TRUE);
-	GetDlgItem(IDC_COMBO_RESOLUTION)->EnableWindow(TRUE);
-	GetDlgItem(IDC_COMBO_CAM)->EnableWindow(TRUE);
+	//GetDlgItem(IDC_BUTTON_PLAY)->EnableWindow(FALSE);
+	//GetDlgItem(IDC_BUTTON_STOP)->EnableWindow(TRUE);
+	//GetDlgItem(IDC_BUTTON_CAM_CTRL)->EnableWindow(TRUE);
+	//GetDlgItem(IDC_COMBO_RESOLUTION)->EnableWindow(TRUE);
+	//GetDlgItem(IDC_COMBO_CAM)->EnableWindow(TRUE);
 
-	GetDlgItem(IDC_BUTTON_SAVE_IMAGE)->EnableWindow(TRUE);
+	GetDlgItem(IDC_BUTTON_SAVE_VIDEO)->EnableWindow(FALSE);
+	GetDlgItem(IDC_BUTTON_STOP_VIDEO)->EnableWindow(TRUE);
 	
 	isRecording = true;
-	SaveSequenceInstance();
+}
+
+void COCamViewerDlg::OnBnClickedButtonStopVideo()
+{
+	GetDlgItem(IDC_BUTTON_SAVE_VIDEO)->EnableWindow(TRUE);
+	GetDlgItem(IDC_BUTTON_STOP_VIDEO)->EnableWindow(FALSE);
+
+
+	isRecording = false;
 }
 
 void COCamViewerDlg::SaveSequenceInstance()
 {
-	DWORD time = timeGetTime();
+	DWORD t_save_frame = timeGetTime();
 
-	std::ostringstream save_name, time_s;
+	std::ostringstream save_name;
 	std::string dir(m_dirImgSeq);
-	save_name << dir << "im_" << std::setw(10) << std::setfill('0') << time << ".bmp";
+	save_name << dir << "im_" << std::setw(10) << std::setfill('0') << t_save_frame << ".bmp";
 	std::string name_str = save_name.str();
 	CString fName(name_str.c_str());
-	m_Image.Save(fName);
+
+	if (m_CamModel == "oCam-1MGN-U") {
+		m_ImageSrc.Save(fName);
+	}
+	else {
+		m_Image.Save(fName);
+	}
+	
 }
 
 void COCamViewerDlg::OnCbnSelchangeComboCam()

@@ -1,0 +1,15 @@
+﻿  stdafx.cpp
+  DlgCamCtrl.cpp
+  ImgProc.cpp
+  oCamViewer.cpp
+  OCamViewerDlg.cpp
+  wDisplay.cpp
+c:\users\jljoberg\documents\ocam\software\ocam-viewer_win\src\ocam_viewer\wdisplay.cpp(217): warning C4996: 'itoa': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _itoa. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\stdlib.h(1323): note: see declaration of 'itoa'
+  wImage.cpp
+  Generating code
+  All 735 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  oCam_viewer.vcxproj -> C:\Users\jljoberg\Documents\oCam\Software\oCam-viewer_Win\src\_build_\x86\Release\oCamViewer-x86.exe
+  C:\Users\jljoberg\Documents\oCam\Software\oCam-viewer_Win\src\\libCamCap\libCamCap-x86.dll
+          1 file(s) copied.

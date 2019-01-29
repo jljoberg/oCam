@@ -74,6 +74,7 @@ public:
 	afx_msg void OnBnClickedButtonSaveImage();
 
 	afx_msg void OnBnClickedButtonSaveVideo();	//ENABLE SAVE VIDEO
+	afx_msg void OnBnClickedButtonStopVideo();	//DISABLESAVE VIDEO
 	void SaveSequenceInstance();						// SAVE VIDEO
 
 	afx_msg void OnDestroy();
