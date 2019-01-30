@@ -8,6 +8,8 @@
 #include "wDisplay.h"
 #include "DlgCamCtrl.h"
 #include "libCamCap.h"
+#include <string>
+
 
 // COCamViewerDlg dialog
 class COCamViewerDlg : public CDialogEx
@@ -19,7 +21,8 @@ public:
     void		UpdateFPS();
     void		CopyImage(void *Data);
 
-	char*		m_dirImgSeq = "img_seq\\";
+	//char*		m_dirImgSeq = "asdfasdfasdf";
+	std::string	m_dirImgSeq;
 	bool		isRecording = false;
 
 // Dialog Data
@@ -51,6 +54,7 @@ public:
     wDisplay	m_Display;
 
 protected:
+	void init_dirImSeq();
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
 
 

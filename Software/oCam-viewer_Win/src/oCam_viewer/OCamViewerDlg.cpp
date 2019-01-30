@@ -10,9 +10,12 @@
 #include <string>
 #include  <fstream>
 
+// Jens includes
 #include <sstream>
 #include <iostream>
 #include <iomanip>
+#include <string>
+//#include <sysinfoapi.h>
 
 #define  WM_CALLBACK		(WM_USER+2)
 
@@ -236,14 +239,55 @@ COCamViewerDlg::COCamViewerDlg(CWnd* pParent /*=NULL*/)
 
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
-	// Set up dir for sequence of images
-	m_dirImgSeq = "img_seq\\";
-	char* cmd = (char *)malloc(32);
-	strcpy(cmd, "mkdir ");
-	strcat(cmd, m_dirImgSeq);
-	system(cmd);
+	init_dirImSeq();
+
 }
 
+void COCamViewerDlg::init_dirImSeq()
+{
+	// Set up dir for sequence of images
+	SYSTEMTIME sysTime;
+	GetLocalTime(&sysTime);
+
+	std::string month = std::to_string(sysTime.wMonth);
+	month = std::string(2- month.length(), '0') + month;
+
+	std::string day = std::to_string(sysTime.wDay);
+	day = std::string(2 - day.length(), '0') + day;
+
+	std::string hour = std::to_string(sysTime.wHour);
+	hour = std::string(2 - hour.length(), '0') + hour;
+
+	std::string minute = std::to_string(sysTime.wMinute);
+	minute = std::string(2 - minute.length(), '0') + minute;
+
+	std::string second = std::to_string(sysTime.wSecond);
+	second = std::string(2 - second.length(), '0') + second;
+
+	std::string ms = std::to_string(sysTime.wMilliseconds);
+	ms = std::string(3 - ms.length(), '0') + ms;
+
+
+	std::string t_str_noMs = std::to_string(sysTime.wYear) + '-' + month + '-' +
+		day	+ '-' + hour + '-' + 	minute + '-' + second;
+	m_dirImgSeq =  "img_seq_" + t_str_noMs + "\\";
+	std::string cmd = "mkdir " + m_dirImgSeq;
+	system(cmd.c_str());
+
+	std::ofstream f_tInfo;
+	std::string n_tInfo = m_dirImgSeq + "_timeRelaion.txt";
+	f_tInfo.open(n_tInfo.c_str());
+	f_tInfo << "ms_system_time: " << std::to_string(timeGetTime()) << "\n\n";
+	f_tInfo << "year: " << std::to_string(sysTime.wYear) << "\n";
+	f_tInfo << "month: " << month << "\n";
+	f_tInfo << "day: " << day << "\n";
+	f_tInfo << "hour: " << hour << "\n";
+	f_tInfo << "minute: " << minute << "\n";
+	f_tInfo << "second: " << second << "\n";
+	f_tInfo << "ms: " << ms << "\n";
+	f_tInfo.close();
+
+}
 void COCamViewerDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
@@ -595,8 +639,7 @@ void COCamViewerDlg::SaveSequenceInstance()
 	DWORD t_save_frame = timeGetTime();
 
 	std::ostringstream save_name;
-	std::string dir(m_dirImgSeq);
-	save_name << dir << "im_" << std::setw(10) << std::setfill('0') << t_save_frame << ".bmp";
+	save_name << m_dirImgSeq << "im_" << std::setw(10) << std::setfill('0') << t_save_frame << ".bmp";
 	std::string name_str = save_name.str();
 	CString fName(name_str.c_str());
 
@@ -606,7 +649,6 @@ void COCamViewerDlg::SaveSequenceInstance()
 	else {
 		m_Image.Save(fName);
 	}
-	
 }
 
 void COCamViewerDlg::OnCbnSelchangeComboCam()
